@@ -1,0 +1,42 @@
+class KB:
+    def __init__(self):
+        self.facts = set()
+        self.rules = []
+    def tell(self, statement):
+        if '=>' in statement:
+            self.rules.append(statement)
+        else:  
+            self.facts.add(statement)
+    def ask(self, query):
+        if query in self.facts:
+            return True
+        inferred = set()
+        agenda = [rule for rule in self.rules if self.statement_match(rule.split('=>')[0], query)]
+        while agenda:
+            rule = agenda.pop(0)
+            conclusion = rule.split('=>')[1].strip()
+            if conclusion == query:
+                return True
+            inferred.add(conclusion)
+            new_agenda = [rule for rule in self.rules if self.statement_match(rule.split('=>')[0], conclusion)]
+            agenda.extend(new_agenda)
+            agenda = list(set(agenda) - inferred)
+        return False
+    def statement_match(self, rule, fact):
+        rule_parts = rule.split('&&')
+        for part in rule_parts:
+            if part.strip() not in self.facts and part.strip() != fact:
+                return False
+        return True
+def main():
+    kb = KB()
+    kb.tell("Human(x) && Mortal(x) => Mortal(x)")
+    kb.tell("Human(Socrates)")
+    kb.tell("Human(Plato)")
+    query1 = "Mortal(Socrates)"
+    query2 = "Mortal(Plato)"
+    print("Is Socrates mortal?", kb.ask(query1))
+    print("Is Plato mortal?", kb.ask(query2))
+if __name__ == "__main__":
+    main()
+

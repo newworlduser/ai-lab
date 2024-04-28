@@ -1,0 +1,49 @@
+from collections import deque
+class State:
+    def __init__(self, jug1, jug2):
+        self.jug1 = jug1
+        self.jug2 = jug2
+    def __eq__(self, other):
+        return self.jug1 == other.jug1 and self.jug2 == other.jug2
+    def __hash__(self):
+        return hash((self.jug1, self.jug2))
+    def __str__(self):
+        return f'({self.jug1}, {self.jug2})'
+def get_successors(state, jug1_capacity, jug2_capacity):
+    successors = []
+    successors.append(State(jug1_capacity, state.jug2))
+    successors.append(State(state.jug1, jug2_capacity))
+    successors.append(State(0, state.jug2))
+    successors.append(State(state.jug1, 0))
+    pour_amount = min(state.jug1, jug2_capacity - state.jug2)
+    successors.append(State(state.jug1 - pour_amount, state.jug2 + pour_amount))
+    pour_amount = min(state.jug2, jug1_capacity - state.jug1)
+    successors.append(State(state.jug1 + pour_amount, state.jug2 - pour_amount))
+    return successors
+def bfs(start_state, goal, jug1_capacity, jug2_capacity):
+    visited = set()
+    queue = deque([(start_state, [])])
+    while queue:
+        state, path = queue.popleft()
+        if state == goal:
+            return path + [state]
+        if state not in visited:
+            visited.add(state)
+            successors = get_successors(state, jug1_capacity, jug2_capacity)
+            for successor in successors:
+                queue.append((successor, path + [state]))
+    return None
+def main():
+    jug1_capacity = 4
+    jug2_capacity = 3
+    start_state = State(0, 0)
+    goal_state = State(2, 0) 
+    solution = bfs(start_state, goal_state, jug1_capacity, jug2_capacity)
+    if solution:
+        print("Solution found:")
+        for idx, state in enumerate(solution):
+            print(f"Step {idx}: {state}")
+    else:
+        print("No solution found")
+if __name__ == "__main__":
+    main()

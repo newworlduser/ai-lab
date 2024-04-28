@@ -1,0 +1,55 @@
+import heapq
+class Graph:
+    def __init__(self):
+        self.graph = {}
+    def add_edge(self, node, adjacent, cost):
+        if node not in self.graph:
+            self.graph[node] = []
+        self.graph[node].append((adjacent, cost))
+    def astar(self, start, goal, heuristic):
+        priority_queue = [(0, start)]
+        came_from = {}
+        cost_so_far = {start: 0}
+        while priority_queue:
+            current_cost, current_node = heapq.heappop(priority_queue)
+            if current_node == goal:
+                break
+            if current_node in self.graph:
+                for neighbor, cost in self.graph[current_node]:
+                    new_cost = cost_so_far[current_node] + cost
+                    if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                        cost_so_far[neighbor] = new_cost
+                        priority = new_cost + heuristic(neighbor, goal)
+                        heapq.heappush(priority_queue, (priority, neighbor))
+                        came_from[neighbor] = current_node
+        path = self.reconstruct_path(came_from, start, goal)
+        return path
+    def reconstruct_path(self, came_from, start, goal):
+        current = goal
+        path = []
+        while current != start:
+            path.append(current)
+            current = came_from[current]
+        path.append(start)
+        path.reverse()
+        return path
+def heuristic(node, goal):
+    # This is a simple Manhattan distance heuristic for a grid-like graph
+    x1, y1 = node
+    x2, y2 = goal
+    return abs(x1 - x2) + abs(y1 - y2)
+def main():
+    g = Graph()
+    g.add_edge((0, 0), (0, 1), 1)
+    g.add_edge((0, 1), (1, 1), 1)
+    g.add_edge((1, 1), (1, 2), 1)
+    g.add_edge((1, 2), (2, 2), 1)
+    g.add_edge((2, 2), (2, 3), 1)
+    g.add_edge((2, 3), (3, 3), 1)
+    g.add_edge((3, 3), (4, 3), 1)
+    start = (0, 0)
+    goal = (4, 3)
+    path = g.astar(start, goal, heuristic)
+    print("A* path from", start, "to", goal, ":", path)
+if __name__ == "__main__":
+    main()
